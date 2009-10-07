@@ -2,7 +2,7 @@ package Dist::Zilla::Plugin::MakeMaker::SkipInstall;
 
 use Moose;
 
-with 'Dist::Zilla::Role::AfterBuild'
+with 'Dist::Zilla::Role::AfterBuild';
 
 has filename => (
   isa => 'Str',

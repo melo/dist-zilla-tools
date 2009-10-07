@@ -11,27 +11,26 @@ has filename => (
 );
 
 sub after_build {
-  my ($self) = @_;
-  my $filename = $self->filename;
+  my ($self, $args) = @_;
+  my $build_root = $args->{build_root};
+  my $filename = $build_root->file($self->filename);
   
-  my $content = do {
-    local $/;
-    open my $fh, '<', $filename
-      or Carp::croak("can't open '$filename' for reading: $!");
-    <$fh>
-  };
+  my $content = $filename->slurp;
   
   my ($pre, $post) = split(/^\s*WriteMakefile[(]/sm, $content);
   $content = $pre
-           . qq{## I was here\n}
-           . 'WriteMakefile('
+           . q{
+
+exit 0 if $ENV{AUTOMATED_TESTING};
+sub MY::install { "install ::\n" }
+
+           }
+           . "\nWriteMakefile("
            . $post;
   
-  open my $fh, '>', $filename
-    or Carp::croak("can't open $filename for writing: $!");
-
-  print $out_fh $content or Carp::croak("error writing to $filename: $!");
-  close $out_fh or Carp::croak("error closing $filename: $!");
+  my $fh = $filename->openw;
+  $fh->print($content) or Carp::croak("error writing to $filename: $!");
+  $fh->close or Carp::croak("error closing $filename: $!");
 }
 
 __PACKAGE__->meta->make_immutable;

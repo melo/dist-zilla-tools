@@ -17,7 +17,7 @@ sub filter_prereqs {
 
     ## fetch latest version
     my $module = $cpan->instance('CPAN::Module', $package);
-    next unless my $version = $module->{RO}{CPAN_VERSION};
+    next unless my $version = $module->available_version;
 
     ## update our prereqs to use it
     $prereqs->{$package} = $version;

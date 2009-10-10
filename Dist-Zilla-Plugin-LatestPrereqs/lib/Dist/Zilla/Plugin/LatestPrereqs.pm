@@ -16,8 +16,8 @@ sub filter_prereqs {
     next if $prereqs->{$package};
 
     ## fetch latest version
-    my $module = $cpan->instance('CPAN::Module', $package);
-    next unless my $version = $module->available_version;
+    my $module = $cpan->expand('Module', $package);
+    next unless my $version = $module->cpan_version;
 
     ## update our prereqs to use it
     $prereqs->{$package} = $version;
@@ -31,12 +31,10 @@ sub filter_prereqs {
 }
 
 sub _startup_cpan {
-  my $cpan = CPAN->new;
    ## Hide output of CPAN
   $CPAN::Frontend = 'Dist::Zilla::Plugin::LatestPrereqs::MyCPAN::Shell';
-  CPAN::Index->reload;
 
-  return $cpan;
+  return 'CPAN::Shell';
 }
 
 __PACKAGE__->meta->make_immutable;

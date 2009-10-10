@@ -24,16 +24,10 @@ sub filter_prereqs {
   }
 }
 
-{
-  package Dist::Zilla::Plugin::LatestPrereqs::MyCPAN::Shell;
-  use base 'CPAN::Shell';
-  sub print_ornamented { return }
-}
-
 sub _startup_cpan {
    ## Hide output of CPAN
-  $CPAN::Frontend = 'Dist::Zilla::Plugin::LatestPrereqs::MyCPAN::Shell';
-
+  $CPAN::Be_Silent++;
+  
   return 'CPAN::Shell';
 }
 

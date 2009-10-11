@@ -1,5 +1,8 @@
 Revision history for Dist-Zilla-Plugin-MakeMaker-SkipInstall
 
+1.002  Sun Oct 11 07:14:39 UTC 2009
+         - Fix dependencies (again...)
+
 1.001  Sat Oct 10 12:41:01 UTC 2009
          - Fixed dependencies
 

@@ -2,32 +2,47 @@ package Dist::Zilla::Plugin::LatestPrereqs;
 
 use Moose;
 use CPAN;
+with 'Dist::Zilla::Role::PrereqSource';
 
-with 'Dist::Zilla::Role::PrereqFilter';
+sub register_prereqs {
+  my ($self) = @_;
+  my $zilla = $self->zilla;
 
-sub filter_prereqs {
-  my ($self, $prereqs) = @_;
-  return unless %$prereqs;
+  my $prereqs = $zilla->prereq;
+  my $cpan    = _startup_cpan();
 
-  my $cpan = _startup_cpan();
+  my $guts = $prereqs->_guts;
+  for my $phase (keys %$guts) {
+    for my $type (keys %{$guts->{$phase}}) {
+      my $prereqs = $guts->{$phase}{$type}->as_string_hash;
 
-  for my $package (keys %$prereqs) {
-    ## Allow for user defined required version
-    next if $prereqs->{$package};
+      for my $module (keys %$prereqs) {
+        $self->log_debug("Check version of '$module', type '$type' for phase '$phase'");
+        ## allow for user defined required version
+        next if $prereqs->{$module};
 
-    ## fetch latest version
-    my $module = $cpan->expand('Module', $package);
-    next unless my $version = $module->cpan_version;
+        ## fetch latest version
+        $self->log_debug("Fetch latest version for '$module' from CPAN");
+        my $info = $cpan->expand('Module', $module);
+        next unless my $version = $info->cpan_version;
 
-    ## update our prereqs to use it
-    $prereqs->{$package} = $version;
+        ## register the latest version
+        $self->log_debug("Update version of '$module' to '$version'");
+        $zilla->register_prereqs(
+          { type  => $type,
+            phase => $phase,
+          },
+          $module => $version,
+        );
+      }
+    }
   }
 }
 
 sub _startup_cpan {
-   ## Hide output of CPAN
+  ## Hide output of CPAN
   $CPAN::Be_Silent++;
-  
+
   return 'CPAN::Shell';
 }
 
@@ -37,15 +52,18 @@ no Moose;
 
 __END__
 
+
 =head1 NAME
 
 Dist::Zilla::Plugin::LatestPrereqs - adjust prereqs to use latest version available
 
+
 =head1 SYNOPSIS
 
-In your C<dist.ini> file:
+At the B<BOTTOM> of your C<dist.ini> file:
 
     [LatestPrereqs]
+
 
 =head1 DESCRIPTION
 
@@ -66,6 +84,7 @@ at the time the package is installed.
 
 To do that it would require updates to the CPAN toolchain. Although I
 would welcome that, this plugin implements the next best thing.
+
 
 =head1 EXTRA REQUIREMENTS
 
@@ -99,7 +118,7 @@ Pedro Melo, C<< <melo at cpan.org> >>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009 Pedro Melo.
+Copyright 2009-2010 Pedro Melo.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
@@ -109,7 +128,7 @@ under the same terms as Perl itself.
 
 =over 4
 
-=item filter_prereqs()
+=item register_prereqs()
 
 Loops over all the given prereqs and uses L<CPAN> to figure out which is
 the latest version of the module.

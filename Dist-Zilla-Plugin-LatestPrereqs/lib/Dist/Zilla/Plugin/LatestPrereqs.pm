@@ -8,22 +8,27 @@ sub register_prereqs {
   my ($self) = @_;
   my $zilla = $self->zilla;
 
-  my $prereqs = $zilla->prereq;
+  my $prereqs = $zilla->prereqs;
   my $cpan    = _startup_cpan();
 
-  my $guts = $prereqs->_guts;
+  my $guts = $prereqs->cpan_meta_prereqs->{prereqs} || {};
+
   for my $phase (keys %$guts) {
     for my $type (keys %{$guts->{$phase}}) {
       my $prereqs = $guts->{$phase}{$type}->as_string_hash;
 
       for my $module (keys %$prereqs) {
-        $self->log_debug("Check version of '$module', type '$type' for phase '$phase'");
+        $self->log_debug("Check '$module', type '$type' phase '$phase'");
         ## allow for user defined required version
         next if $prereqs->{$module};
 
         ## fetch latest version
         $self->log_debug("Fetch latest version for '$module' from CPAN");
         my $info = $cpan->expand('Module', $module);
+        unless ($info) {
+          $self->log("Could not find info on Module '$module'");
+          next;
+        }
         next unless my $version = $info->cpan_version;
 
         ## register the latest version
@@ -90,6 +95,18 @@ would welcome that, this plugin implements the next best thing.
 
 This plugin uses the L<CPAN> module, but hides the output, so make sure
 you have your cpan shell properly configured before trying to use this.
+
+
+=head1 BUGS
+
+This modules abuses the internals of the L<CPAN::Meta::Prereqs> module.
+This is a bug, but right now that module does not provide an API to
+traverse its internals.
+
+As soon as it does, I'll rewrite this module to use it.
+
+Until then, this module might break with new releases of
+L<CPAN::Meta::Prereqs>.
 
 
 =head1 CREDITS

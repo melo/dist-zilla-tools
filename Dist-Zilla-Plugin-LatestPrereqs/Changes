@@ -1,5 +1,8 @@
 Revision history for Dist-Zilla-Plugin-LatestPrereqs
 
+0.4   Unreleased
+        - Don't require latest versions of core modules (RT #63345) [Mike Doherty]
+
 0.3   Tue Jul 27 16:52:38 UTC 2010
          - Updated to Dist-Zilla version 4
 

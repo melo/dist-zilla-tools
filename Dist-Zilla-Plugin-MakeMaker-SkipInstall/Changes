@@ -1,5 +1,8 @@
 Revision history for Dist-Zilla-Plugin-MakeMaker-SkipInstall
 
+1.100  Sun Apr 10 20:20:42 UTC 2011
+         - Upgrade to dzil 4.x (jquelin@cpan.org RT 66682)
+
 1.002  Sun Oct 11 07:14:39 UTC 2009
          - Fix dependencies (again...)
 

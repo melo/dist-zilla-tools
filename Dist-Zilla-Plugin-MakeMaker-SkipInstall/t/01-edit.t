@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Test::More;
 use Test::Exception;
-use Dist::Zilla;
+use Dist::Zilla::Tester;
 use Dist::Zilla::Plugin::MakeMaker::SkipInstall;
 use Path::Class qw( dir );
 use File::Temp qw( tempdir );
@@ -15,7 +15,7 @@ my $makefile = setup_project($dir);
 
 my $plugin = Dist::Zilla::Plugin::MakeMaker::SkipInstall->new(
   plugin_name => 'MakeMaker::SkipInstall',
-  zilla       => Dist::Zilla->from_config({dist_root => $dir->stringify}),
+  zilla       => Dist::Zilla::Tester->from_config({dist_root => $dir->stringify}),
 );
 ok($plugin);
 lives_ok sub { $plugin->after_build({build_root => $dir}) };

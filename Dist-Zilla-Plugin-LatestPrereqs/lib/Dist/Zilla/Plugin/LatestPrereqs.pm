@@ -23,7 +23,7 @@ sub register_prereqs {
         ## allow for user defined required version
         next if $prereqs->{$module};
         $self->log_debug("Skipping core module $module") and next
-          if Module::CoreList->first_release($module) >= $];
+          if Module::CoreList->first_release($module) <= $];
 
         ## fetch latest version
         $self->log_debug("Fetch latest version for '$module' from CPAN");

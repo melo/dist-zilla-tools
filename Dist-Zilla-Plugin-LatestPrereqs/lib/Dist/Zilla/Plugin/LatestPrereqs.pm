@@ -2,6 +2,7 @@ package Dist::Zilla::Plugin::LatestPrereqs;
 
 use Moose;
 use CPAN;
+use Module::CoreList;
 with 'Dist::Zilla::Role::PrereqSource';
 
 sub register_prereqs {
@@ -21,6 +22,8 @@ sub register_prereqs {
         $self->log_debug("Check '$module', type '$type' phase '$phase'");
         ## allow for user defined required version
         next if $prereqs->{$module};
+        $self->log_debug("Skipping core module $module") and next
+          if Module::CoreList->first_release($module) >= $];
 
         ## fetch latest version
         $self->log_debug("Fetch latest version for '$module' from CPAN");

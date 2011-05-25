@@ -5,9 +5,17 @@ use CPAN;
 use Module::CoreList;
 with 'Dist::Zilla::Role::PrereqSource';
 
+has 'skip_core_modules' => (
+  is      => 'ro',
+  isa     => 'Bool',
+  default => 0,
+);
+
+
 sub register_prereqs {
   my ($self) = @_;
   my $zilla = $self->zilla;
+  my $skip_core = $self->skip_core_modules;
 
   my $prereqs = $zilla->prereqs;
   my $cpan    = _startup_cpan();
@@ -22,8 +30,14 @@ sub register_prereqs {
         $self->log_debug("Check '$module', type '$type' phase '$phase'");
         ## allow for user defined required version
         next if $prereqs->{$module};
-        $self->log_debug("Skipping core module $module") and next
-          if Module::CoreList->first_release($module) <= $];
+
+        if ($skip_core) {
+          my $rel = Module::CoreList->first_release($module);
+          if ($rel && $rel <= $]) {
+            $self->log_debug("Skipping core module $module ($rel <= $])");
+            next;
+          }
+        }
 
         ## fetch latest version
         $self->log_debug("Fetch latest version for '$module' from CPAN");
@@ -71,7 +85,11 @@ Dist::Zilla::Plugin::LatestPrereqs - adjust prereqs to use latest version availa
 At the B<BOTTOM> of your C<dist.ini> file:
 
     [LatestPrereqs]
-
+    
+    ## Optionally skip core modules
+    [LatestPrereqs]
+    skip_core_modules = 1
+    
 
 =head1 DESCRIPTION
 
@@ -92,6 +110,47 @@ at the time the package is installed.
 
 To do that it would require updates to the CPAN toolchain. Although I
 would welcome that, this plugin implements the next best thing.
+
+
+=head2 Core modules options
+
+B<NOTE WELL:> this feature should be considered alpha. The interface
+might change in future versions.
+
+The option C<skip_core_modules> can be used to control the behaviour of
+this plugin with core modules (as defined by the
+L<Module::CoreList|Module::CoreList> API).
+
+If set to 1, we will skip forcing the latest version on modules that are
+part of the perl core, version equal or below to the one used to release
+the module.
+
+An example: you have two modules on your C<< [Prereqs] >> list,
+C<Digest::SHA> part of the core since 5.009003, and C<HTTP::Tiny> part
+of the core since 5.013009. With C<skip_core_modules=1>, the following
+will happen:
+
+=over 4
+
+=item * If you release your module using perl 5.008009, both
+C<Digest::SHA> and C<HTTP::Tiny> will be forced to the
+lastest version.
+
+=item * If you release your module using perl 5.012003, the
+C<Digest::SHA> will not be forced to the lastest version, but
+C<HTTP::Tiny> will.
+
+=item * If you release your module using perl 5.014000, both
+C<ExtUtils::MakeMaker> and C<HTTP::Tiny> will not be forced to the
+lastest version.
+
+=back
+
+By default (0) all modules will get the latest version.
+
+Idealy we would make this decision based on the perl version of the
+person that will install your distribution, but for now that is not
+easy to do.
 
 
 =head1 EXTRA REQUIREMENTS
@@ -124,6 +183,8 @@ latest version of the module to be installed.
 
 A L<Dist::Zilla> plugin that implements what Marcel describes is also
 available, see L<Dist::Zilla::Plugin::MakeMaker::SkipInstall>.
+
+Mike Doherty added the first version of the skip core modules feature.
 
 
 =head1 SEE ALSO

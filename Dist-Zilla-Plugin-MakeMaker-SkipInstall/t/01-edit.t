@@ -21,8 +21,8 @@ ok($plugin);
 lives_ok sub { $plugin->after_build({build_root => $dir}) };
 
 my $content = $makefile->slurp;
-like($content, qr/exit 0 if \$ENV{AUTOMATED_TESTING}/);
-like($content, qr/sub MY::install { "install ::\\n" }/);
+like($content, qr/exit 0 if \$ENV\{AUTOMATED_TESTING\}/);
+like($content, qr/sub MY::install \{ "install ::\\n" \}/);
 
 done_testing();
 

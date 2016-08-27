@@ -1,5 +1,8 @@
 Revision history for Dist-Zilla-Plugin-MakeMaker-SkipInstall
 
+1.200  Sat Aug 27 12:21:23 UTC 2016
+         - Fix test with un-escaped regexp's with more recent perl's (SREZIC@cpan.org RT 117247)
+
 1.100  Sun Apr 10 20:20:42 UTC 2011
          - Upgrade to dzil 4.x (jquelin@cpan.org RT 66682)
 

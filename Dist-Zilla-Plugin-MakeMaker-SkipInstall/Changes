@@ -1,5 +1,9 @@
 Revision history for Dist-Zilla-Plugin-MakeMaker-SkipInstall
 
+1.201  Tue Aug 30 11:28:25 UTC 2016
+         - Drop dependency on Path::Class (ANDK@cpan.org RT 117312)
+         - Make sure all dependencies are declared
+
 1.200  Sat Aug 27 12:21:23 UTC 2016
          - Fix test with un-escaped regexp's with more recent perl's (SREZIC@cpan.org RT 117247)
 

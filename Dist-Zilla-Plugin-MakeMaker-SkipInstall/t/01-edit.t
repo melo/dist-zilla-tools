@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 use Test::More;
-use Test::Exception;
+use Test::Fatal;
 use Dist::Zilla::Tester;
 use Dist::Zilla::Plugin::MakeMaker::SkipInstall;
 use File::Spec;
@@ -18,7 +18,7 @@ my $plugin = Dist::Zilla::Plugin::MakeMaker::SkipInstall->new(
   zilla       => Dist::Zilla::Tester->from_config({dist_root => $dir}),
 );
 ok($plugin);
-lives_ok sub { $plugin->after_build({build_root => $dir}) };
+is(exception { $plugin->after_build({build_root => $dir}) }, undef);
 
 my $content = Dist::Zilla::Plugin::MakeMaker::SkipInstall::_slurp($makefile);
 like($content, qr/exit 0 if \$ENV\{AUTOMATED_TESTING\}/);

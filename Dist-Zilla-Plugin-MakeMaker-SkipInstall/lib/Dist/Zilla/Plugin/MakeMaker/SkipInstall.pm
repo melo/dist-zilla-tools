@@ -1,6 +1,7 @@
 package Dist::Zilla::Plugin::MakeMaker::SkipInstall;
 
 use Moose;
+use File::Spec;
 
 with 'Dist::Zilla::Role::AfterBuild';
 
@@ -13,10 +14,9 @@ has filename => (
 sub after_build {
   my ($self, $args) = @_;
   my $build_root = $args->{build_root};
-  my $filename = $build_root->file($self->filename);
+  my $filename = File::Spec->catfile($build_root, $self->filename);
   
-  my $content = $filename->slurp;
-  
+  my $content = _slurp($filename);
   my ($pre, $post) = split(/^\s*WriteMakefile[(]/sm, $content);
   $content = $pre
            . q{
@@ -28,9 +28,18 @@ sub MY::install { "install ::\n" }
            . "\nWriteMakefile("
            . $post;
   
-  my $fh = $filename->openw;
-  $fh->print($content) or Carp::croak("error writing to $filename: $!");
-  $fh->close or Carp::croak("error closing $filename: $!");
+  open(my $fh, '>', $filename) or Carp::croak("error opening file '$filename' for writing: $!");
+  print $fh $content or Carp::croak("error writing to $filename: $!");
+  close($fh) or Carp::croak("error closing $filename: $!");
+}
+
+sub _slurp {
+  local $/;
+  open(my $fh, '<', $_[0]) or Carp::croak("error opening file '$_[0]' for reading: $!");
+  my $content = <$fh>;
+  close($fh) or Carp::croak("error closing $_[0]: $!");
+
+  return $content;
 }
 
 __PACKAGE__->meta->make_immutable;

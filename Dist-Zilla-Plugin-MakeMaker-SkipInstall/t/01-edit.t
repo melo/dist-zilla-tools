@@ -6,21 +6,21 @@ use Test::More;
 use Test::Exception;
 use Dist::Zilla::Tester;
 use Dist::Zilla::Plugin::MakeMaker::SkipInstall;
-use Path::Class qw( dir );
+use File::Spec;
 use File::Temp qw( tempdir );
 use File::Copy qw( copy );
 
-my $dir = dir(tempdir(CLEANUP => 1));
+my $dir = tempdir(CLEANUP => 1);
 my $makefile = setup_project($dir);
 
 my $plugin = Dist::Zilla::Plugin::MakeMaker::SkipInstall->new(
   plugin_name => 'MakeMaker::SkipInstall',
-  zilla       => Dist::Zilla::Tester->from_config({dist_root => $dir->stringify}),
+  zilla       => Dist::Zilla::Tester->from_config({dist_root => $dir}),
 );
 ok($plugin);
 lives_ok sub { $plugin->after_build({build_root => $dir}) };
 
-my $content = $makefile->slurp;
+my $content = Dist::Zilla::Plugin::MakeMaker::SkipInstall::_slurp($makefile);
 like($content, qr/exit 0 if \$ENV\{AUTOMATED_TESTING\}/);
 like($content, qr/sub MY::install \{ "install ::\\n" \}/);
 
@@ -30,10 +30,10 @@ sub setup_project {
   my $dir = shift;
 
   for my $f ('Makefile.PL', 'dist.ini') {
-    my $dest = $dir->file($f)->stringify;
+    my $dest = File::Spec->catfile($dir, $f);
     copy($f, $dest)
       or die "Could not copy file '$f' to '$dest': $!";
   }
 
-  return $dir->file('Makefile.PL');
+  return File::Spec->catfile($dir, 'Makefile.PL');
 }
